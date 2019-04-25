@@ -24,7 +24,8 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="8dp"
         android:textSize="18sp"
-        android:text="@string/time"/>
+        android:text="@string/time"
+        android:textAlignment="center"/>
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart"

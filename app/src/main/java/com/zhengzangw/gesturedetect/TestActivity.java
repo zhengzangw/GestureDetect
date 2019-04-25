@@ -36,17 +36,17 @@ public class TestActivity extends AppCompatActivity {
     private static final int GESTURE_SAMPLES = 128;
 
     // region tensorflow
-    private static final String MODEL_FILENAME = "file:///android_asset/frozen_optimized.pb";
+    private static final String MODEL_FILENAME = "file:///android_asset/frozen_optimized_quant.pb";
+
+    private static final int NUM_CHANNELS = 3;
+    private static final float DATA_NORMALIZATION_COEF = 9f;
+    private static final int SMOOTHING_VALUE = 20;
 
     private static final String INPUT_NODE = "x_input";
     private static final String OUTPUT_NODE = "labels_output";
     private static final String[] OUTPUT_NODES = new String[]{OUTPUT_NODE};
-    private static final int NUM_CHANNELS = 3;
     private static final long[] INPUT_SIZE = {1, GESTURE_SAMPLES, NUM_CHANNELS};
-    private static final String[] labels = new String[]{"Right", "Left", "NoMove"};
-
-    private static final float DATA_NORMALIZATION_COEF = 9f;
-    private static final int SMOOTHING_VALUE = 20;
+    private static final String[] labels = new String[]{"Right", "Left"};
 
     private final float[] outputScores = new float[labels.length];
     private final float[] recordingData = new float[GESTURE_SAMPLES * NUM_CHANNELS];
@@ -183,8 +183,8 @@ public class TestActivity extends AppCompatActivity {
             inferenceInterface.fetch(OUTPUT_NODE, outputScores);
             long stopTime = SystemClock.elapsedRealtimeNanos();
 
-            final float x = filteredData[filteredData.length - 3];
-            final float y = filteredData[filteredData.length - 2];
+            final float x = filteredData[filteredData.length - 2];
+            final float y = filteredData[filteredData.length - 1];
             final float z = filteredData[filteredData.length - 1];
             final long runTime = stopTime - startTime;
             final float leftProbability = outputScores[0];
@@ -195,13 +195,13 @@ public class TestActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    updateUI(runTime, floatTimestampMicros, x, y, z, leftProbability, rightProbability, nomoveProbaility);
+                    updateUI(runTime, floatTimestampMicros, leftProbability, rightProbability);
                 }
             });
         }
     };
 
-    private static void filterData(float input[], float output[]) {
+    private static void filterData(float[] input, float[] output) {
         Arrays.fill(output, 0);
 
         float ir = 1.0f / SMOOTHING_VALUE;
@@ -216,8 +216,8 @@ public class TestActivity extends AppCompatActivity {
         }
     }
 
-    private void updateUI(long runTime, float timestampMicros, float x, float y, float z, float leftProbability, float rightProbability, float nomoveProbability) {
-        txtProcessTime.setText("Time: " + Utils.formatNsDuration(runTime));
+    private void updateUI(long runTime, float timestampMicros, float leftProbability, float rightProbability) {
+        txtProcessTime.setText("Time: " + Utils.formatNsDuration(runTime) + "\nProb: " + leftProbability);
 
         leftProbability -= 0.5; // -0.5..0.5
         leftProbability *= 2; // -1..1
@@ -227,20 +227,20 @@ public class TestActivity extends AppCompatActivity {
         rightProbability *= 2; // -1..1
         //if (rightProbability < -1) rightProbability = -1;
 
-        nomoveProbability -= 0.5; // -0.75..0.25
-        nomoveProbability *= 2; //-3..1
+        //nomoveProbability -= 0.5; // -0.75..0.25
+        //nomoveProbability *= 2; //-3..1
         //if (nomoveProbability < -1) nomoveProbability = -1;
 
         float probabilityTimestamp = timestampMicros - GESTURE_DURATION_MS / 1000 / 2;
 
-        addPoint(X_INDEX, timestampMicros, x);
-        addPoint(Y_INDEX, timestampMicros, y);
-        addPoint(Z_INDEX, timestampMicros, z);
+        //addPoint(X_INDEX, timestampMicros, x);
+        //addPoint(Y_INDEX, timestampMicros, y);
+        //addPoint(Z_INDEX, timestampMicros, z);
 
         if (probabilityTimestamp > 0) {
             addPoint(RIGHT_INDEX, probabilityTimestamp, rightProbability);
             addPoint(LEFT_INDEX, probabilityTimestamp, leftProbability);
-            addPoint(NOMOVE_INDEX, probabilityTimestamp, nomoveProbability);
+            //addPoint(NOMOVE_INDEX, probabilityTimestamp, nomoveProbability);
         }
 
         chart.notifyDataSetChanged();
@@ -249,15 +249,12 @@ public class TestActivity extends AppCompatActivity {
 
 
     // region chart helper methods
-    private static final String[] LINE_DESCRIPTIONS = {"X", "Y", "Z", "Ver", "Lef", "Right"};
-    private static final int[] LINE_COLORS = {0x70FF0000, 0x7000FF00, 0x70FFFF00, 0x7000FFFF, 0x70FF00FF, 0x700000FF};
+    private static final String[] LINE_DESCRIPTIONS = {"Lef", "Right"};
+    private static final int[] LINE_COLORS = {0x70FF0000, 0x7000FF00, 0x700000FF};
 
-    private static final int X_INDEX = 0;
-    private static final int Y_INDEX = 1;
-    private static final int Z_INDEX = 2;
-    private static final int RIGHT_INDEX = 3;
-    private static final int LEFT_INDEX = 4;
-    private static final int NOMOVE_INDEX = 5;
+    private static final int RIGHT_INDEX = 0;
+    private static final int LEFT_INDEX = 1;
+    private static final int NOMOVE_INDEX = 2;
 
     private void createDataSets() {
         for (int i = 0; i < LINE_DESCRIPTIONS.length; i++) {

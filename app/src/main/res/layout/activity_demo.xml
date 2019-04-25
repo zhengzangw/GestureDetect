@@ -7,13 +7,21 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/debug"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:text="Debug"/>
+
     <TextView
         android:id="@+id/Type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:text="Default"
-        android:textSize="50dp"
+        android:textSize="50sp"
         android:textStyle="bold"/>
 
     <Button
@@ -21,7 +29,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:text="Connect"/>
 
     <TextView
         android:id="@+id/socketState1"
