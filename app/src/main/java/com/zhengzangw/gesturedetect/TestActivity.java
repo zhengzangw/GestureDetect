@@ -189,7 +189,6 @@ public class TestActivity extends AppCompatActivity {
             final long runTime = stopTime - startTime;
             final float leftProbability = outputScores[0];
             final float rightProbability = outputScores[1];
-            final float nomoveProbaility = outputScores[2];
 
             // update UI
             runOnUiThread(new Runnable() {
